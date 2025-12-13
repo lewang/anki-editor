@@ -244,17 +244,21 @@ The api is borrowed from request.el."
         (set-buffer-multibyte t)
         (insert data)))
     (unwind-protect
-        (with-current-buffer responsebuf
-          (apply #'call-process "curl" nil t nil (list
-                                                  url
-                                                  "--silent"
-                                                  "-X" type
-                                                  "--data-binary"
-                                                  (concat "@" tempfile)))
+        (unless (ignore-error json-end-of-file
+                  (with-current-buffer responsebuf
+                    (apply #'call-process "curl" nil t nil (list
+                                                        url
+                                                        "--silent"
+                                                        "-X" type
+                                                        "--data-binary"
+                                                        (concat "@" tempfile)))
 
-          (goto-char (point-min))
-          (when success
-            (apply success (list :data (funcall parser)))))
+                    (goto-char (point-min))
+                    (when success
+                      (apply success (list :data (funcall parser))))
+                    t))
+          (error (concat "Failed to connect to Anki.  "
+                         "Is Anki running with the AnkiConnect add-on enabled?")))
       (kill-buffer responsebuf)
       (delete-file tempfile))))
 
