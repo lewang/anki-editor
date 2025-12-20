@@ -1537,6 +1537,13 @@ matching non-empty `ANKI_FAILURE_REASON' properties."
   (anki-editor-push-notes scope
                           (concat anki-editor-prop-failure-reason "<>\"\"")))
 
+(defun anki-editor-force-push-notes (&optional scope)
+  (interactive)
+  ;; use dynamic scoped var so we don't change anki-editor-push-notes
+  ;; signature.
+  (let ((anki-editor-force-update t))
+    (anki-editor-push-notes scope)))
+
 (defun anki-editor-delete-note-at-point (&optional prefix)
   "Delete the note at point from Anki.
 With PREFIX also delete it from Org."
