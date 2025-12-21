@@ -4,21 +4,16 @@
 
 anki-editor is an [[https://www.gnu.org/software/emacs/emacs.html][Emacs]] minor mode for making [[https://apps.ankiweb.net][Anki]] cards with [[https://orgmode.org][Org Mode]].
 
-This repository is a fork of [[https://github.com/louietan/anki-editor][louietan/anki-editor]]. By now there are quite a few differences and extensions compared to the original:
-- The develop branch of the original has been merged into the master branch; see the unreleased section of [[https://github.com/orgtre/anki-editor/blob/master/Changelog.org][Changelog.org]] for a list of the new features that come with this.
-- Almost all outstanding pull requests to the original have been integrated; [[https://github.com/orgtre/anki-editor/issues/10][this issue]] tracks the two exceptions.
-- A more flexible note structure, outlined [[https://github.com/eyeinsky/org-anki/issues/48#issuecomment-1216625730][here]], has been introduced.
-- The commands to push notes, delete notes, and insert notes have been improved.
-- A [[https://github.com/orgtre/anki-editor/issues/13][transient interface]] to all commands has been created.
-
-See the [[https://github.com/louietan/anki-editor/compare/master...orgtre:anki-editor:master][commit log]] for a full list of differences. Note that this README does not reflect all the changes and additions yet.
-
-
 ** Installation
 
-*** External dependencies
+*** External Dependencies
 
-Other than Emacs you need [[https://apps.ankiweb.net][Anki]], its [[https://github.com/FooSoft/anki-connect][AnkiConnect]] add-on, and [[https://curl.se][curl]] to use anki-editor. Because of AnkiConnect, anki-editor-mode needs Anki to be running (see [[https://github.com/orgtre/anki-editor/issues/5#issuecomment-1295857747][issue]] for explanation).
+| Emacs 28+   | anki-editor may run on older versions, but it's not supported |
+| [[https://apps.ankiweb.net][Anki]]        | Open source Spaced-Repetition Software                        |
+| [[https://github.com/FooSoft/anki-connect][AnkiConnect]] | Anki add-on to expose an http API for interacting with Anki   |
+| [[https://curl.se][curl]]        | Unix CLI tool used for making requests to AnkiConnect's API   |
+
+Additionally, anki-editor requires Anki to be running (see [[https://github.com/orgtre/anki-editor/issues/5#issuecomment-1295857747][issue]] for explanation).
 
 *** Using ~package-vc.el~
 
@@ -189,7 +184,10 @@ If you use Spacemacs, you can add ~anki-editor~ to ~dotspacemacs-additional-pack
 and ~@~ in a tag but Anki allows more, so you may have to edit you
 Anki tags before they can be used in Org without any surprise.
 **** Controlling HTML Formatting
-By default, anki-editor converts Org syntax to HTML when exporting to Anki.
+By default, anki-editor converts Org syntax to HTML when exporting to Anki but anki-editor provides a few mechanisms for disabling this at different levels.
+
+The =anki-editor-export-note-fields-on-push= elisp variable can be set to nil in your emacs config file to *globally* disable exporting to HTML.
+
 The =:ANKI_FORMAT: nil= property can be used at the *note* level to disable this conversion for the entire note.
 
 If you want to use both raw text fields and HTML-converted fields within a single note, you can now use the =# raw= prefix *within a field* to indicate that the field's content should be treated as raw text, bypassing HTML conversion.
@@ -218,9 +216,10 @@ To see the docs for the most recent commands use M-x describe-function (for more
    | Command                            | Description                                                                                                                    |
    |------------------------------------+--------------------------------------------------------------------------------------------------------------------------------|
    | anki-editor-mode                   | Toggle this minor mode.                                                                                                        |
-   | anki-editor-push-notes             | Push notes to Anki. Additional arguments can be used to restrict the range of notes.                                           |
-   | anki-editor-push-new-notes         | Similar to ~anki-editor-push-notes~, but push those that are without ~ANKI_NOTE_ID~.                                           |
-   | anki-editor-retry-failed-notes     | Similar to ~anki-editor-push-notes~, except that it only pushes notes with ~ANKI_FAILURE_REASON~.                              |
+   | anki-editor-push-notes             | Push new and changed notes to Anki. Additional arguments can be used to restrict the range of notes.                           |
+   | anki-editor-push-new-notes         | Similar to ~anki-editor-push-notes~ but only push new notes, those that are without ~ANKI_NOTE_ID~.                            |
+   | anki-editor-retry-failed-notes     | Similar to ~anki-editor-push-notes~ except that it only pushes notes with ~ANKI_FAILURE_REASON~.                               |
+   | anki-editor-force-push-notes       | Similar to ~anki-editor-push-notes~ except that it pushes unchanged notes as well.                                             |
    | anki-editor-insert-note            | Insert a note entry like ~M-RET~, interactively.  When note heading is not provided or is blank, it's used as the first field. |
    | anki-editor-delete-notes           | Delete notes or the note at point.                                                                                             |
    | anki-editor-cloze-dwim             | Cloze current active region or a word the under the cursor.                                                                    |
@@ -234,18 +233,23 @@ To see the docs for the most recent commands use M-x describe-function (for more
 *** Variables
 To see the docs for the most recent commands use M-x describe-variable (for more info see [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Name-Help.html][Emacs Manual - Help Commands]])
 
-   | Name                                          | Default Value          | Description                                                                                              |
-   |-----------------------------------------------+------------------------+----------------------------------------------------------------------------------------------------------|
-   | anki-editor-api-host                          | "127.0.0.1"            | The network address AnkiConnect is listening.                                                            |
-   | anki-editor-api-port                          | "8765"                 | The port number AnkiConnect is listening.                                                                |
-   | anki-editor-break-consecutive-braces-in-latex | nil                    | If non-nil, consecutive "}" will be automatically separated by spaces to prevent early-closing of cloze. |
-   | anki-editor-ignored-org-tags                  | '("export" "noexport") | A list of Org tags that are ignored when constructing notes form entries.                                |
-   | anki-editor-org-tags-as-anki-tags             | t                      | If nil, tags of entries wont't be counted as Anki tags.                                                  |
-   | anki-editor-protected-tags                    | '("marked" "leech")    | A list of tags that won't be deleted from Anki even though they're absent in Org entries.                |
-   | anki-editor-latex-style                       | builtin                | The style of latex to translate into.                                                                    |
-   | anki-editor-include-default-style             | t                      | Wheter or not to include `org-html-style-default' when using `anki-editor-copy-styles'.                  |
-   | anki-editor-html-head                         | nil                    | Additional html tags to append to card stylings when using `anki-editor-copy-styles'.                    |
-   | anki-editor-note-match                        | nil                    | Additional matching string for mapping through anki note headings.                                       |
+   | Name                                          | Default Value          | Description                                                                                                                                                                                       |
+   |-----------------------------------------------+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+   | anki-editor-api-host                          | "127.0.0.1"            | The network address AnkiConnect is listening.                                                                                                                                                     |
+   | anki-editor-api-port                          | "8765"                 | The port number AnkiConnect is listening.                                                                                                                                                         |
+   | anki-editor-break-consecutive-braces-in-latex | nil                    | If non-nil, consecutive "}" will be automatically separated by spaces to prevent early-closing of cloze.                                                                                          |
+   | anki-editor-ignored-org-tags                  | '("export" "noexport") | A list of Org tags that are ignored when constructing notes form entries.                                                                                                                         |
+   | anki-editor-org-tags-as-anki-tags             | t                      | If nil, tags of entries wont't be counted as Anki tags.                                                                                                                                           |
+   | anki-editor-protected-tags                    | '("marked" "leech")    | A list of tags that won't be deleted from Anki even though they're absent in Org entries.                                                                                                         |
+   | anki-editor-latex-style                       | builtin                | The style of latex to translate into.                                                                                                                                                             |
+   | anki-editor-include-default-style             | t                      | Whether or not to include `org-html-style-default' when using `anki-editor-copy-styles'.                                                                                                          |
+   | anki-editor-html-head                         | nil                    | Additional html tags to append to card stylings when using `anki-editor-copy-styles'.                                                                                                             |
+   | anki-editor-note-match                        | nil                    | Additional matching string for mapping through anki note headings.                                                                                                                                |
+   | anki-editor-export-note-fields-on-push        | t                      | Whether to export Org syntax to HTML.                                                                                                                                                             |
+   | anki-editor-force-update                      | nil                    | Whether to push notes even if changes are not detected in the note contents.                                                                                                                      |
+   | anki-editor-allow-duplicates                  | nil                    | If nil, pushing notes will fail if duplicate note is detected.                                                                                                                                    |
+   | anki-editor-default-note-type                 | "Basic"                | Default note type when creating an anki-editor note in org.                                                                                                                                       |
+   | anki-editor-latex-display-math-div            | nil                    | Whether to wrap latex fragments with an extra div when exporting. Either nil, for no extra wrapping, or a string value, which will be used for the class name of the wrapping div when exporting. |
 
 *** Functions and Macros
 
@@ -331,3 +335,7 @@ The following items are not synchronized to org:
 ** Demo
 
   [[./demo.gif]]
+
+** History
+
+This repository originated as a fork of [[https://github.com/louietan/anki-editor][louietan/anki-editor]] and has since become the de-facto version. For more information check out an earlier readme [[https://github.com/anki-editor/anki-editor/blob/f5f22417b4572e7fc247a4e82c02817b4de0138e/README.org#anki-editor][here]].
