@@ -10,7 +10,7 @@ anki-editor is an [[https://www.gnu.org/software/emacs/emacs.html][Emacs]] minor
 
 | Emacs 28+   | anki-editor may run on older versions, but it's not supported |
 | [[https://apps.ankiweb.net][Anki]]        | Open source Spaced-Repetition Software                        |
-| [[https://github.com/FooSoft/anki-connect][AnkiConnect]] | Anki add-on to expose an http API for interacting with Anki   |
+| [[https://git.sr.ht/~foosoft/anki-connect][AnkiConnect]] | Anki add-on to expose an http API for interacting with Anki   |
 | [[https://curl.se][curl]]        | Unix CLI tool used for making requests to AnkiConnect's API   |
 
 Additionally, anki-editor requires Anki to be running (see [[https://github.com/orgtre/anki-editor/issues/5#issuecomment-1295857747][issue]] for explanation).
