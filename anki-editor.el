@@ -1538,6 +1538,9 @@ matching non-empty `ANKI_FAILURE_REASON' properties."
                           (concat anki-editor-prop-failure-reason "<>\"\"")))
 
 (defun anki-editor-force-push-notes (&optional scope)
+  "Push all notes in SCOPE to anki, regardless of the current
+value of `anki-editor-force-update' or whether note contents
+have changed."
   (interactive)
   ;; use dynamic scoped var so we don't change anki-editor-push-notes
   ;; signature.
